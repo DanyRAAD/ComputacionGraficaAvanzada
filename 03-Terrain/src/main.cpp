@@ -27,7 +27,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
-
+#include "Headers/Terrain.h"
 #include "Headers/Texture.h"
 
 // Include loader Model class
@@ -98,6 +98,10 @@ Model cowboyModelAnimate;
 Model guardianModelAnimate;
 // Cybog
 Model cyborgModelAnimate;
+
+//Terrain
+Terrain terreno(-1, -1, 50, 32, "../Textures/heightmap2024-2.png");
+
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint skyboxTextureID;
@@ -362,6 +366,10 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	cyborgModelAnimate.loadModel("../models/cyborg/cyborg.fbx");
 	cyborgModelAnimate.setShader(&shaderMulLighting);
 
+	//Terreno
+	terreno.init();
+	terreno.setShader(&shaderMulLighting);
+
 	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
 	
 	// Carga de texturas para el skybox
@@ -577,6 +585,7 @@ void destroy() {
 	cowboyModelAnimate.destroy();
 	guardianModelAnimate.destroy();
 	cyborgModelAnimate.destroy();
+	terreno.destroy();
 
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -907,7 +916,7 @@ void applicationLoop() {
 		/*******************************************
 		 * Cesped
 		 *******************************************/
-		glm::mat4 modelCesped = glm::mat4(1.0);
+		/*glm::mat4 modelCesped = glm::mat4(1.0);
 		modelCesped = glm::translate(modelCesped, glm::vec3(0.0, 0.0, 0.0));
 		modelCesped = glm::scale(modelCesped, glm::vec3(200.0, 0.001, 200.0));
 		// Se activa la textura del agua
@@ -916,17 +925,30 @@ void applicationLoop() {
 		shaderMulLighting.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(200, 200)));
 		boxCesped.render(modelCesped);
 		shaderMulLighting.setVectorFloat2("scaleUV", glm::value_ptr(glm::vec2(0, 0)));
-		glBindTexture(GL_TEXTURE_2D, 0);
+		glBindTexture(GL_TEXTURE_2D, 0);*/
+
+		//Terreno
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textureCespedID);
+		terreno.setPosition(glm::vec3(25,0,25));
+		//terreno.enableWireMode();
+		shaderMulLighting.setVectorFloat2("sacaleUV",glm::value_ptr(glm::vec2(50.0))); //repeticion de imagen
+		terreno.render();
+		//terreno.enableFillMode();
+		shaderMulLighting.setVectorFloat2("sacaleUV",glm::value_ptr(glm::vec2(1.0)));
+		glBindTexture(GL_TEXTURE_2D,0);
 
 		/*******************************************
 		 * Custom objects obj
 		 *******************************************/
 		//Rock render
+		matrixModelRock[3][1] = terreno.getHeightTerrain(matrixModelRock[3][0], matrixModelRock[3][2]);
 		modelRock.render(matrixModelRock);
 		// Forze to enable the unit texture to 0 always ----------------- IMPORTANT
 		glActiveTexture(GL_TEXTURE0);
 
 		// Render for the aircraft model
+		modelMatrixAircraft[3][1] = terreno.getHeightTerrain(modelMatrixAircraft[3][0], modelMatrixAircraft[3][2]);
 		modelAircraft.render(modelMatrixAircraft);
 
 		// Render for the eclipse car
@@ -1066,6 +1088,13 @@ void applicationLoop() {
 		/*****************************************
 		 * Objetos animados por huesos
 		 * **************************************/
+		glm::vec3 normal = terreno.getNormalTerrain(modelMatrixMayow[3][0],modelMatrixMayow[3][2]); //vector de 3 elementos eje y 
+		glm::vec3 ejex = glm::vec3(modelMatrixMayow[0]);
+		glm::vec3 ejez = glm::normalize( glm::cross(ejex,normal)); 
+		ejex = glm::normalize(glm::cross(normal,ejez));
+		modelMatrixMayow[0] = glm::vec4(ejex, 0.0);
+		modelMatrixMayow[1] = glm::vec4(normal, 0.0);
+		modelMatrixMayow[3][1] = terreno.getHeightTerrain(modelMatrixMayow[3][0],modelMatrixMayow[3][2]);
 		glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
 		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021f));
 		mayowModelAnimate.setAnimationIndex(animationMayowIndex);
