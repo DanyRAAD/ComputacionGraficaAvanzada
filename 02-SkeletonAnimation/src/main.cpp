@@ -91,7 +91,14 @@ Model modelBuzzLeftForeArm;
 Model modelBuzzLeftHand;
 
 //Modelos animados 
-Model spiderModelAnimate;
+//Mayouw
+Model mayowModelAnimate;
+//Cawboy
+Model cowboyModelAnimate;
+//Guardian con lampara 
+Model guardianModelAnimate;
+//Spiderman
+Model spiderManModelAnimate;
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint skyboxTextureID;
@@ -104,12 +111,12 @@ GL_TEXTURE_CUBE_MAP_NEGATIVE_Y,
 GL_TEXTURE_CUBE_MAP_POSITIVE_Z,
 GL_TEXTURE_CUBE_MAP_NEGATIVE_Z };
 
-std::string fileNames[6] = { "../Textures/mp_bloodvalley/blood-valley_ft.tga",
-		"../Textures/mp_bloodvalley/blood-valley_bk.tga",
-		"../Textures/mp_bloodvalley/blood-valley_up.tga",
-		"../Textures/mp_bloodvalley/blood-valley_dn.tga",
-		"../Textures/mp_bloodvalley/blood-valley_rt.tga",
-		"../Textures/mp_bloodvalley/blood-valley_lf.tga" };
+std::string fileNames[6] = { "../Textures/envmap_miramar/miramar_ft.tga",
+		"../Textures/envmap_miramar/miramar_bk.tga",
+		"../Textures/envmap_miramar/miramar_up.tga",
+		"../Textures/envmap_miramar/miramar_dn.tga",
+		"../Textures/envmap_miramar/miramar_rt.tga",
+		"../Textures/envmap_miramar/miramar_lf.tga" };
 
 bool exitApp = false;
 int lastMousePosX, offsetX = 0;
@@ -123,10 +130,12 @@ glm::mat4 modelMatrixLambo = glm::mat4(1.0);
 glm::mat4 modelMatrixAircraft = glm::mat4(1.0);
 glm::mat4 modelMatrixDart = glm::mat4(1.0f);
 glm::mat4 modelMatrixBuzz = glm::mat4(1.0f);
-glm::mat4 modelMatrixSpider = glm::mat4(1.0f);
+glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
+glm::mat4 modelMatrixCowboy = glm::mat4(1.0f);
+glm::mat4 modelMatrixGuardian = glm::mat4(1.0f);
+glm::mat4 modelMatrixSpiderMan = glm::mat4(1.0f);
 
-
-
+int animationSpiderManIndex = 0;
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 float rotBuzzHead = 0.0, rotBuzzLeftarm = 0.0, rotBuzzLeftForeArm = 0.0, rotBuzzLeftHand = 0.0;
 int modelSelected = 0;
@@ -338,13 +347,22 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	modelBuzzLeftHand.loadModel("../models/buzz/buzzlightyLeftHand.obj");
 	modelBuzzLeftHand.setShader(&shaderMulLighting);
 
+	//Mayow
+	mayowModelAnimate.loadModel("../models/mayow/personaje2.fbx");
+	mayowModelAnimate.setShader(&shaderMulLighting);
+
+	//Cowboy 
+	cowboyModelAnimate.loadModel("../models/cowboy/Character Running.fbx");
+	cowboyModelAnimate.setShader(&shaderMulLighting);
+
+	//guardian de luz 
+	guardianModelAnimate.loadModel("../models/boblampclean/boblampclean.md5mesh");
+	guardianModelAnimate.setShader(&shaderMulLighting);
 
 	//spider
-	spiderModelAnimate.loadModel("..models/spiderman/spiderman.fbx");
-	spiderModelAnimate.setShader(&shaderMulLighting);
+	spiderManModelAnimate.loadModel("../models/spiderman/spiderman3.fbx");
+	spiderManModelAnimate.setShader(&shaderMulLighting);
 
-	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
-	
 	// Carga de texturas para el skybox
 	Texture skyboxTexture = Texture("");
 	glGenTextures(1, &skyboxTextureID);
@@ -554,7 +572,11 @@ void destroy() {
 	modelBuzzLeftForeArm.destroy();
 	modelBuzzLeftHand.destroy();
 	modelBuzzTorso.destroy();
-	spiderModelAnimate.destroy();
+	mayowModelAnimate.destroy();
+	cowboyModelAnimate.destroy();
+	guardianModelAnimate.destroy();
+	spiderManModelAnimate.destroy();
+
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
 	glDeleteTextures(1, &textureCespedID);
@@ -759,6 +781,20 @@ bool processInput(bool continueApplication) {
 	else if (modelSelected == 2 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS)
 		modelMatrixBuzz = glm::translate(modelMatrixBuzz, glm::vec3(0.0, 0.0, -0.02));
 
+	//Model control de spider man
+	if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS){
+		modelMatrixSpiderMan = glm::rotate(modelMatrixSpiderMan, 0.02f, glm::vec3(0, 1, 0));
+		animationSpiderManIndex = 1;
+	}else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS){
+		modelMatrixSpiderMan = glm::rotate(modelMatrixSpiderMan, -0.02f, glm::vec3(0, 1, 0));
+		animationSpiderManIndex = 1;
+	}if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
+		modelMatrixSpiderMan = glm::translate(modelMatrixSpiderMan, glm::vec3(0.0, 0.0, 0.02));
+		animationSpiderManIndex = 1;
+	}else if (modelSelected == 0 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
+		modelMatrixSpiderMan = glm::translate(modelMatrixSpiderMan, glm::vec3(0.0, 0.0, -0.02));
+		animationSpiderManIndex = 1;
+	}
 	glfwPollEvents();
 	return continueApplication;
 }
@@ -788,7 +824,14 @@ void applicationLoop() {
 
 	modelMatrixBuzz = glm::translate(modelMatrixBuzz, glm::vec3(15.0, 0.0, -10.0));
 
-	modelMatrixSpider = glm::translate(modelMatrixSpider, glm::vec3(13.0, 0.5, -5.0));
+	modelMatrixMayow =glm::translate(modelMatrixMayow, glm::vec3(13.0f, 0.05f, -5.0f));
+
+	modelMatrixCowboy = glm::translate(modelMatrixCowboy, glm::vec3(13.0, 0.05, 0.0));
+
+	modelMatrixGuardian = glm::translate(modelMatrixGuardian, glm::vec3(15, 0.05, 0.0));
+	modelMatrixGuardian = glm::rotate(modelMatrixGuardian, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0) );
+	
+	modelMatrixSpiderMan = glm::translate(modelMatrixSpiderMan, glm:: vec3(5.0f, 0.05f, 0.0f ));
 
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
@@ -1127,11 +1170,29 @@ void applicationLoop() {
 
 
 		/*****************************************
-		  Objetos animados 
+		  Objetos animados por huesos 
 		******************************************/
-		glm::mat4 modelMatrixSpiderBody =glm::mat4(modelMatrixSpider);
-		modelMatrixSpiderBody = glm::scale(modelMatrixSpiderBody, glm::vec3(0.9f));
-		spiderModelAnimate.render(modelMatrixSpiderBody);
+		//Mayow
+		glm::mat4 modelMatrixMayowBody = glm::mat4(modelMatrixMayow);
+		modelMatrixMayowBody = glm::scale(modelMatrixMayowBody, glm::vec3(0.021f));
+		mayowModelAnimate.render(modelMatrixMayowBody);
+
+		//Cowboy 
+		glm::mat4 modelMatrixCowboyBody = glm::mat4(modelMatrixCowboy);
+		modelMatrixCowboyBody = glm::scale(modelMatrixCowboyBody, glm::vec3(0.0021f));
+		cowboyModelAnimate.render(modelMatrixCowboyBody);
+
+		//guardian con lampara 
+		glm::mat4 modelMatrixGuardianBody = glm::mat4(modelMatrixGuardian);
+		modelMatrixGuardianBody = glm::scale(modelMatrixGuardianBody, glm::vec3(0.04f));
+		guardianModelAnimate.render(modelMatrixGuardianBody);
+
+		//SpiderMan
+		glm::mat4 modelMatrixSpiderManBody = glm::mat4(modelMatrixSpiderMan);
+		modelMatrixSpiderManBody = glm::scale(modelMatrixSpiderManBody, glm::vec3(0.006f));
+		spiderManModelAnimate.setAnimationIndex(animationSpiderManIndex); 
+		spiderManModelAnimate.render(modelMatrixSpiderManBody);
+		animationSpiderManIndex = 0;
 
 
 		/*******************************************
