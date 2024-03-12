@@ -99,9 +99,11 @@ Model cowboyModelAnimate;
 Model guardianModelAnimate;
 // Cybog
 Model cyborgModelAnimate;
+//SpiderMan
+Model spiderManModelAnimate;
 
 //Terrain
-Terrain terreno(-1, -1, 50, 32, "../Textures/heightmap2024-2.png");
+Terrain terreno(-1, -1, 50, 32, "../Textures/heightmap4.png");
 
 
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
@@ -138,7 +140,9 @@ glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
 glm::mat4 modelMatrixCowboy = glm::mat4(1.0f);
 glm::mat4 modelMatrixGuardian = glm::mat4(1.0f);
 glm::mat4 modelMatrixCyborg = glm::mat4(1.0f);
+glm::mat4 modelMatrixSpiderMan = glm::mat4(1.0f);
 
+int animationSpiderManIndex = 0;
 int animationMayowIndex = 1;
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 float rotBuzzHead = 0.0, rotBuzzLeftarm = 0.0, rotBuzzLeftForeArm = 0.0, rotBuzzLeftHand = 0.0;
@@ -367,6 +371,10 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	cyborgModelAnimate.loadModel("../models/cyborg/cyborg.fbx");
 	cyborgModelAnimate.setShader(&shaderMulLighting);
 
+	//spider
+	spiderManModelAnimate.loadModel("../models/spiderman/spiderman3.fbx");
+	spiderManModelAnimate.setShader(&shaderMulLighting);
+
 	//Terreno
 	terreno.init();
 	terreno.setShader(&shaderMulLighting);
@@ -587,6 +595,7 @@ void destroy() {
 	guardianModelAnimate.destroy();
 	cyborgModelAnimate.destroy();
 	terreno.destroy();
+	spiderManModelAnimate.destroy();
 
 	// Textures Delete
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -664,7 +673,7 @@ bool processInput(bool continueApplication) {
 	if (enableCountSelected && glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS){
 		enableCountSelected = false;
 		modelSelected++;
-		if(modelSelected > 4)
+		if(modelSelected > 5)
 			modelSelected = 0;
 		if(modelSelected == 1)
 			fileName = "../animaciones/animation_dart_joints.txt";
@@ -809,6 +818,21 @@ bool processInput(bool continueApplication) {
 		animationMayowIndex = 0;
 	}
 
+	//Model control de spider man
+	if (modelSelected == 5 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS){
+		modelMatrixSpiderMan = glm::rotate(modelMatrixSpiderMan, 0.02f, glm::vec3(0, 1, 0));
+		animationSpiderManIndex = 1;
+	}else if (modelSelected == 5 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS){
+		modelMatrixSpiderMan = glm::rotate(modelMatrixSpiderMan, -0.02f, glm::vec3(0, 1, 0));
+		animationSpiderManIndex = 1;
+	}if (modelSelected == 5 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
+		modelMatrixSpiderMan = glm::translate(modelMatrixSpiderMan, glm::vec3(0.0, 0.0, 0.02));
+		animationSpiderManIndex = 1;
+	}else if (modelSelected == 5 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
+		modelMatrixSpiderMan = glm::translate(modelMatrixSpiderMan, glm::vec3(0.0, 0.0, -0.02));
+		animationSpiderManIndex = 1;
+	}
+
 	glfwPollEvents();
 	return continueApplication;
 }
@@ -848,6 +872,7 @@ void applicationLoop() {
 
 	modelMatrixCyborg = glm::translate(modelMatrixCyborg, glm::vec3(5.0f, 0.05, 0.0f));
 
+	modelMatrixSpiderMan = glm::translate(modelMatrixSpiderMan, glm:: vec3(5.0f, 0.05f, 0.0f ));
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
 	keyFramesDartJoints = getKeyRotFrames(fileName);
@@ -985,9 +1010,10 @@ void applicationLoop() {
 		modelMatrixHeliHeliBack = glm::translate(modelMatrixHeliHeliBack, glm::vec3(-0.400524, -2.0928, 5.64124));
 		modelHeliHeliBack.render(modelMatrixHeliHeliBack);
 
-		// Lambo car
+		/*// Lambo car
 		glDisable(GL_CULL_FACE);
 		glm::mat4 modelMatrixLamboChasis = glm::mat4(modelMatrixLambo);
+		modelMatrixLamboChasis[3][1] = terreno.getHeightTerrain(modelMatrixLamboChasis[3][0], modelMatrixLamboChasis[3][2]);
 		modelMatrixLamboChasis = glm::scale(modelMatrixLamboChasis, glm::vec3(1.3, 1.3, 1.3));
 		modelLambo.render(modelMatrixLamboChasis);
 		glActiveTexture(GL_TEXTURE0);
@@ -1002,7 +1028,39 @@ void applicationLoop() {
 		modelLamboRearLeftWheel.render(modelMatrixLamboChasis);
 		modelLamboRearRightWheel.render(modelMatrixLamboChasis);
 		// Se regresa el cull faces IMPORTANTE para las puertas
+		glEnable(GL_CULL_FACE);*/
+
+		glDisable(GL_CULL_FACE);
+		// Matriz de transformación del chasis del Lamborghini
+		glm::mat4 modelMatrixLamboChasis = glm::mat4(modelMatrixLambo);
+		// Obtener la altura del terreno en el punto del chasis
+		float terrainHeight = terreno.getHeightTerrain(modelMatrixLamboChasis[3][0], modelMatrixLamboChasis[3][2]);
+		// Ajustar la altura del chasis
+		modelMatrixLamboChasis[3][1] = terrainHeight;
+		// Escalar el chasis (opcional, si es necesario)
+		modelMatrixLamboChasis = glm::scale(modelMatrixLamboChasis, glm::vec3(1.3f, 1.3f, 1.3f));
+		// Renderizar el chasis del Lamborghini
+		modelLambo.render(modelMatrixLamboChasis);
+		// Activar la textura
+		glActiveTexture(GL_TEXTURE0);
+		// Matriz de transformación de la puerta izquierda
+		glm::mat4 modelMatrixLamboLeftDor = glm::mat4(modelMatrixLamboChasis);
+		// Realizar las transformaciones necesarias en la puerta izquierda
+		modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(1.08866f, 0.705743f, 0.968917f));
+		modelMatrixLamboLeftDor = glm::rotate(modelMatrixLamboLeftDor, glm::radians(dorRotCount), glm::vec3(1.0f, 0.0f, 0.0f));
+		modelMatrixLamboLeftDor = glm::translate(modelMatrixLamboLeftDor, glm::vec3(-1.08866f, -0.705743f, -0.968917f));
+		// Renderizar la puerta izquierda
+		modelLamboLeftDor.render(modelMatrixLamboLeftDor);
+		// Renderizar la puerta derecha (usando la misma matriz del chasis)
+		modelLamboRightDor.render(modelMatrixLamboChasis);
+		// Renderizar las ruedas (usando la misma matriz del chasis)
+		modelLamboFrontLeftWheel.render(modelMatrixLamboChasis);
+		modelLamboFrontRightWheel.render(modelMatrixLamboChasis);
+		modelLamboRearLeftWheel.render(modelMatrixLamboChasis);
+		modelLamboRearRightWheel.render(modelMatrixLamboChasis);
+		// Volver a activar el culling de caras (importante para las puertas)
 		glEnable(GL_CULL_FACE);
+
 
 		// Dart lego
 		// Se deshabilita el cull faces IMPORTANTE para la capa
@@ -1101,6 +1159,40 @@ void applicationLoop() {
 		mayowModelAnimate.setAnimationIndex(animationMayowIndex);
 		mayowModelAnimate.render(modelMatrixMayowBody);
 		animationMayowIndex = 1;
+
+		//SpiderMan
+		// Obtener la normal del terreno en la posición de Spiderman
+		glm::vec3 terrainNormal = terreno.getNormalTerrain(modelMatrixSpiderMan[3][0], modelMatrixSpiderMan[3][2]);
+		// Obtener el eje X actual del modelo
+		glm::vec3 modelXAxis = glm::vec3(modelMatrixSpiderMan[0]);
+		// Calcular el eje Z como el producto cruz entre el eje X y la normal del terreno
+		glm::vec3 modelZAxis = glm::normalize(glm::cross(modelXAxis, terrainNormal));
+		// Recalcular el eje X para asegurar la ortogonalidad con la normal y el nuevo eje Z
+		modelXAxis = glm::normalize(glm::cross(terrainNormal, modelZAxis));
+		// Asignar los nuevos ejes al modelo
+		modelMatrixSpiderMan[0] = glm::vec4(modelXAxis, 0.0);
+		modelMatrixSpiderMan[1] = glm::vec4(terrainNormal, 0.0);
+		modelMatrixSpiderMan[2] = glm::vec4(modelZAxis, 0.0);
+		// Ajustar la posición Y del modelo a la altura del terreno en esa posición
+		modelMatrixSpiderMan[3][1] = terreno.getHeightTerrain(modelMatrixSpiderMan[3][0], modelMatrixSpiderMan[3][2]);
+		// Crear la matriz de modelo actualizada
+		glm::mat4 modelMatrixSpiderManBody = glm::mat4(modelMatrixSpiderMan);
+		// Escalar el modelo
+		modelMatrixSpiderManBody = glm::scale(modelMatrixSpiderManBody, glm::vec3(0.006f));
+		// Configurar la animación del modelo
+		spiderManModelAnimate.setAnimationIndex(animationSpiderManIndex);
+		// Renderizar el modelo con la matriz de modelo actualizada
+		spiderManModelAnimate.render(modelMatrixSpiderManBody);
+		// Restablecer el índice de animación
+		animationSpiderManIndex = 0;
+
+
+		/*
+		glm::mat4 modelMatrixSpiderManBody = glm::mat4(modelMatrixSpiderMan);
+		modelMatrixSpiderManBody = glm::scale(modelMatrixSpiderManBody, glm::vec3(0.006f));
+		spiderManModelAnimate.setAnimationIndex(animationSpiderManIndex); 
+		spiderManModelAnimate.render(modelMatrixSpiderManBody);
+		animationSpiderManIndex = 0;*/
 
 		glm::mat4 modelMatrixCowboyBody = glm::mat4(modelMatrixCowboy);
 		modelMatrixCowboyBody = glm::scale(modelMatrixCowboyBody, glm::vec3(0.0021f));
