@@ -42,6 +42,8 @@
 class DLL_PUBLIC Camera
 {
 public:
+	
+	//bool isFirstPersonMode;
 	virtual void mouseMoveCamera(float xoffset, float yoffset, float dt) = 0;
 	virtual void scrollMoveCamera(float soffset, float dt) = 0;
 	virtual void updateCamera() = 0;
@@ -108,6 +110,7 @@ public:
 	}
 
 protected:
+//bool isFirstPersonMode;
 	glm::vec3 position;
 	glm::vec3 front;
 	glm::vec3 up;
@@ -123,6 +126,7 @@ protected:
 	float pitch;
 	float sensitivity;
 	float speed;
+	
 };
 
 #endif // CAMERA_H

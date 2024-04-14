@@ -115,6 +115,9 @@ Model cyborgModelAnimate;
 // Terrain model instance
 Terrain terrain(-1, -1, 200, 8, "../Textures/heightmap.png");
 
+//SpiderMan
+Model spiderManModelAnimate;
+
 GLuint textureCespedID, textureWallID, textureWindowID, textureHighwayID, textureLandingPadID;
 GLuint textureTerrainRID, textureTerrainGID, textureTerrainBID, textureTerrainBlendMapID;
 GLuint skyboxTextureID;
@@ -150,7 +153,9 @@ glm::mat4 modelMatrixMayow = glm::mat4(1.0f);
 glm::mat4 modelMatrixCowboy = glm::mat4(1.0f);
 glm::mat4 modelMatrixGuardian = glm::mat4(1.0f);
 glm::mat4 modelMatrixCyborg = glm::mat4(1.0f);
+glm::mat4 modelMatrixSpiderMan = glm::mat4(1.0f);
 
+int animationSpiderManIndex = 0;
 int animationMayowIndex = 1;
 float rotDartHead = 0.0, rotDartLeftArm = 0.0, rotDartLeftHand = 0.0, rotDartRightArm = 0.0, rotDartRightHand = 0.0, rotDartLeftLeg = 0.0, rotDartRightLeg = 0.0;
 float rotBuzzHead = 0.0, rotBuzzLeftarm = 0.0, rotBuzzLeftForeArm = 0.0, rotBuzzLeftHand = 0.0;
@@ -411,7 +416,11 @@ void init(int width, int height, std::string strTitle, bool bFullScreen) {
 	terrain.init();
 	terrain.setShader(&shaderTerrain);
 
-	//camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
+	//spider
+	spiderManModelAnimate.loadModel("../models/spiderman/spiderman3.fbx");
+	spiderManModelAnimate.setShader(&shaderMulLighting);
+
+	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
 
 	camera->setPosition(glm::vec3(0.0, 3.0, 4.0));
 	camera->setDistanceFromTarget(distanceFromTarget);
@@ -712,6 +721,7 @@ void destroy() {
 	cowboyModelAnimate.destroy();
 	guardianModelAnimate.destroy();
 	cyborgModelAnimate.destroy();
+	spiderManModelAnimate.destroy();
 
 	// Terrains objects Delete
 	terrain.destroy();
@@ -799,6 +809,7 @@ bool processInput(bool continueApplication) {
 		camera->moveRightCamera(true, deltaTime);
 	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT) == GLFW_PRESS)
 		camera->mouseMoveCamera(offsetX, offsetY, deltaTime);*/
+		
 	offsetX = 0;
 	offsetY = 0;
 
@@ -806,7 +817,7 @@ bool processInput(bool continueApplication) {
 	if (enableCountSelected && glfwGetKey(window, GLFW_KEY_TAB) == GLFW_PRESS){
 		enableCountSelected = false;
 		modelSelected++;
-		if(modelSelected > 4)
+		if(modelSelected > 5)
 			modelSelected = 0;
 		if(modelSelected == 1)
 			fileName = "../animaciones/animation_dart_joints.txt";
@@ -951,6 +962,21 @@ bool processInput(bool continueApplication) {
 		animationMayowIndex = 0;
 	}
 
+	//Model control de spider man
+	if (modelSelected == 5 && glfwGetKey(window, GLFW_KEY_LEFT) == GLFW_PRESS){
+		modelMatrixSpiderMan = glm::rotate(modelMatrixSpiderMan, 0.02f, glm::vec3(0, 1, 0));
+		animationSpiderManIndex = 1;
+	}else if (modelSelected == 5 && glfwGetKey(window, GLFW_KEY_RIGHT) == GLFW_PRESS){
+		modelMatrixSpiderMan = glm::rotate(modelMatrixSpiderMan, -0.02f, glm::vec3(0, 1, 0));
+		animationSpiderManIndex = 1;
+	}if (modelSelected == 5 && glfwGetKey(window, GLFW_KEY_UP) == GLFW_PRESS){
+		modelMatrixSpiderMan = glm::translate(modelMatrixSpiderMan, glm::vec3(0.0, 0.0, 0.02));
+		animationSpiderManIndex = 1;
+	}else if (modelSelected == 5 && glfwGetKey(window, GLFW_KEY_DOWN) == GLFW_PRESS){
+		modelMatrixSpiderMan = glm::translate(modelMatrixSpiderMan, glm::vec3(0.0, 0.0, -0.02));
+		animationSpiderManIndex = 1;
+	}
+
 	glfwPollEvents();
 	return continueApplication;
 }
@@ -993,6 +1019,7 @@ void applicationLoop() {
 	modelMatrixGuardian = glm::rotate(modelMatrixGuardian, glm::radians(-90.0f), glm::vec3(1.0, 0.0, 0.0));
 
 	modelMatrixCyborg = glm::translate(modelMatrixCyborg, glm::vec3(5.0f, 0.05, 0.0f));
+	modelMatrixSpiderMan = glm::translate(modelMatrixSpiderMan, glm:: vec3(10.0f, 0.05f, 0.0f ));
 
 	// Variables to interpolation key frames
 	fileName = "../animaciones/animation_dart_joints.txt";
@@ -1024,28 +1051,34 @@ void applicationLoop() {
 		glm::mat4 projection = glm::perspective(glm::radians(45.0f),
 				(float) screenWidth / (float) screenHeight, 0.01f, 100.0f);
 		
-		if(modelSelected == 1){
-			playerPosition = modelMatrixDart[3];
-			axisPlayer = glm::axis(glm::quat_cast(modelMatrixDart));
-			anglePlayer = glm::angle(glm::quat_cast(modelMatrixDart));
-		}
-		else{
-			playerPosition = modelMatrixMayow[3];
-			axisPlayer = glm::axis(glm::quat_cast(modelMatrixMayow));
-			anglePlayer = glm::angle(glm::quat_cast(modelMatrixMayow));
-		}
-		if(std::isnan(anglePlayer))
-			anglePlayer = 0.0;
-		if(axisPlayer.y < 0)
-			anglePlayer = -anglePlayer;
-		if(modelSelected == 1)
-			anglePlayer -= glm::radians(90.0f);
+	if(modelSelected == 1){
+		playerPosition = modelMatrixDart[3];
+		axisPlayer = glm::axis(glm::quat_cast(modelMatrixDart));
+		anglePlayer = glm::angle(glm::quat_cast(modelMatrixDart));
+	}
+	else if(modelSelected == 5){ 
+		playerPosition = modelMatrixSpiderMan[3]; 
+		axisPlayer = glm::axis(glm::quat_cast(modelMatrixSpiderMan)); 
+		anglePlayer = glm::angle(glm::quat_cast(modelMatrixSpiderMan)); 
+	}
+	else{
+		playerPosition = modelMatrixMayow[3];
+		axisPlayer = glm::axis(glm::quat_cast(modelMatrixMayow));
+		anglePlayer = glm::angle(glm::quat_cast(modelMatrixMayow));
+	}
 
-		camera->setCameraTarget(playerPosition);
-		camera->setAngleTarget(anglePlayer);
-		camera->updateCamera();
+	if(std::isnan(anglePlayer))
+		anglePlayer = 0.0;
+	if(axisPlayer.y < 0)
+		anglePlayer = -anglePlayer;
+	if(modelSelected == 1)
+		anglePlayer -= glm::radians(90.0f);
 
-		glm::mat4 view = camera->getViewMatrix();
+	camera->setCameraTarget(playerPosition);
+	camera->setAngleTarget(anglePlayer);
+	camera->updateCamera();
+
+	glm::mat4 view = camera->getViewMatrix();
 
 
 
@@ -1388,6 +1421,32 @@ void applicationLoop() {
 		modelMatrixCyborgBody = glm::scale(modelMatrixCyborgBody, glm::vec3(0.009f));
 		cyborgModelAnimate.setAnimationIndex(1);
 		cyborgModelAnimate.render(modelMatrixCyborgBody);
+
+		//SpiderMan
+		// Obtener la normal del terreno en la posición de Spiderman
+		glm::vec3 terrainNormal = terrain.getNormalTerrain(modelMatrixSpiderMan[3][0], modelMatrixSpiderMan[3][2]);
+		// Obtener el eje X actual del modelo
+		glm::vec3 modelXAxis = glm::vec3(modelMatrixSpiderMan[0]);
+		// Calcular el eje Z como el producto cruz entre el eje X y la normal del terreno
+		glm::vec3 modelZAxis = glm::normalize(glm::cross(modelXAxis, terrainNormal));
+		// Recalcular el eje X para asegurar la ortogonalidad con la normal y el nuevo eje Z
+		modelXAxis = glm::normalize(glm::cross(terrainNormal, modelZAxis));
+		// Asignar los nuevos ejes al modelo
+		modelMatrixSpiderMan[0] = glm::vec4(modelXAxis, 0.0);
+		modelMatrixSpiderMan[1] = glm::vec4(terrainNormal, 0.0);
+		modelMatrixSpiderMan[2] = glm::vec4(modelZAxis, 0.0);
+		// Ajustar la posición Y del modelo a la altura del terreno en esa posición
+		modelMatrixSpiderMan[3][1] = terrain.getHeightTerrain(modelMatrixSpiderMan[3][0], modelMatrixSpiderMan[3][2]);
+		// Crear la matriz de modelo actualizada
+		glm::mat4 modelMatrixSpiderManBody = glm::mat4(modelMatrixSpiderMan);
+		// Escalar el modelo
+		modelMatrixSpiderManBody = glm::scale(modelMatrixSpiderManBody, glm::vec3(0.006f));
+		// Configurar la animación del modelo
+		spiderManModelAnimate.setAnimationIndex(animationSpiderManIndex);
+		// Renderizar el modelo con la matriz de modelo actualizada
+		spiderManModelAnimate.render(modelMatrixSpiderManBody);
+		// Restablecer el índice de animación
+		animationSpiderManIndex = 0;
 
 		/*******************************************
 		 * Skybox
